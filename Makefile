@@ -23,7 +23,7 @@ $(AMD):
 	$(AR) -x external/amd/libamd.a
 
 # build ECOS
-ECOS_OBJS = ecos.o kkt.o cone.o spla.o ctrlc.o timer.o preproc.o splamm.o equil.o expcone.o wright_omega.o
+ECOS_OBJS = ecos.o kkt.o cone.o spla.o ctrlc.o timer.o preproc.o splamm.o equil.o expcone.o wright_omega.o LeanECOS.o
 libecos.a: $(ECOS_OBJS) $(LDL) $(AMD)
 	$(ARCHIVE) $@ $^
 	- $(RANLIB) $@
@@ -33,6 +33,14 @@ ECOS_BB_OBJS = $(ECOS_OBJS) ecos_bb_preproc.o ecos_bb.o
 libecos_bb.a: $(ECOS_BB_OBJS) $(LDL) $(AMD)
 	$(ARCHIVE) $@ $^
 	- $(RANLIB) $@
+
+ifndef LEAN_HOME
+LEAN ?= lean
+LEAN_HOME := $(shell $(LEAN) --print-prefix)
+endif
+
+LeanECOS.o : src/LeanECOS.c include/LeanECOS.h include/ecos.h
+	$(CC) $(CFLAGS) -c src/LeanECOS.c -o LeanECOS.o -I$(LEAN_HOME)/include
 
 %.o : src/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
@@ -54,6 +62,7 @@ equil.o             : include/equil.h include/glblopts.h include/cone.h include/
 expcone.o           : include/expcone.h  
 wright_omega.o      : include/wright_omega.h
 
+LeanECOS.o : include/LeanECOS.h include/ecos.h $(LEAN_HOME)/include/lean/lean.h
 
 # ECOS demo
 .PHONY: demo
